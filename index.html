@@ -104,9 +104,9 @@
          <div class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-8">
             <!-- Cột thông tin trò chơi -->
             <div class="w-full lg:w-1/3 text-center lg:text-left">
-                <h1 class="text-3xl lg:text-4xl font-bold mb-4 text-yellow-300">Mê Cung Hải Đăng</h1>
-                <p class="text-gray-400 mb-2">Người chơi: <span id="display-name" class="font-bold text-white"></span></p>
-                <p class="text-gray-400 mb-6">Bộ phận: <span id="display-department" class="font-bold text-white"></span></p>
+                <h1 class="text-2xl font-bold mb-2 text-yellow-300">Thắp sáng Giá Trị Cốt Lõi</h1>
+                <p class="text-gray-400 mb-1">Người chơi: <span id="display-name" class="font-bold text-white"></span></p>
+                <p class="text-gray-400 mb-4">Bộ phận: <span id="display-department" class="font-bold text-white"></span></p>
                 <div id="discovered-lighthouses" class="bg-gray-800 p-4 rounded-lg shadow-lg min-h-[220px] lg:min-h-[280px]">
                     <h2 class="text-2xl font-semibold mb-3 border-b-2 border-gray-600 pb-2">Giá trị đã thắp sáng</h2>
                     <ul id="discovered-list" class="space-y-2 text-lg">
@@ -153,7 +153,6 @@
         </div>
     </div>
 
-
     <!-- Modal chiến thắng -->
     <div id="win-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 pointer-events-none transform scale-95">
         <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-400">
@@ -164,7 +163,6 @@
             <button id="restart-button-1" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-6 rounded-lg transition-colors">Chơi lại</button>
         </div>
     </div>
-
 
     <script>
         // *** DÁN URL WEB APP CỦA BẠN VÀO ĐÂY ***
@@ -195,7 +193,6 @@
         const completionTimeEl = document.getElementById('completion-time');
         const submissionStatusEl = document.getElementById('submission-status');
         const autocompleteList = document.getElementById('autocomplete-list');
-
 
         // --- LOGIC CHUYỂN TRANG & XÁC THỰC ---
         function restartFullGame() {
@@ -304,14 +301,12 @@
             }
         });
 
-
         // Ẩn danh sách gợi ý khi nhấn ra ngoài
         document.addEventListener('click', (e) => {
             if (e.target !== departmentInput) {
                 autocompleteList.classList.add('hidden');
             }
         });
-
 
         // --- GAME LOGIC ---
         const canvas = document.getElementById('gameCanvas');
@@ -579,3 +574,5 @@
     </script>
 </body>
 </html>
+
+
