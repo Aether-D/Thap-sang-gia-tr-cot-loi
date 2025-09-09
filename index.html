@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thắp Sáng Giá Trị Cốt Lõi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+            touch-action: none; /* Vô hiệu hóa cử chỉ chạm mặc định của trình duyệt như zoom */
+        }
+        canvas {
+            background-color: #1a202c;
+            border: 4px solid #4a5568;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .control-button {
+            transition: all 0.1s ease-in-out;
+            user-select: none; /* Ngăn chọn văn bản khi nhấn giữ */
+        }
+        .control-button:active {
+            transform: scale(0.95);
+            background-color: #4a5568;
+        }
+        .lighthouse-item.lit {
+            color: #f6e05e; /* yellow-300 */
+            text-shadow: 0 0 8px #f6e05e;
+        }
+        .win-modal {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .sequence-item {
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .sequence-item:hover {
+            background-color: #4a5568;
+            transform: scale(1.02);
+        }
+        .sequence-item.selected {
+            background-color: #3b82f6;
+            color: white;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- Trang 1: Chào mừng -->
+    <div id="page-welcome" class="w-full min-h-[100dvh] flex flex-col items-center justify-center p-4 text-center">
+        <h1 class="text-5xl font-bold mb-6 text-yellow-300">Thắp Sáng Giá Trị Cốt Lõi</h1>
+        <div class="my-8">
+            <img src="https://i.postimg.cc/LXxQsMDj/Trang-1.png" alt="Thắp sáng giá trị cốt lõi" class="w-full max-w-md mx-auto rounded-lg shadow-lg">
+        </div>
+        <button id="btn-to-info" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition-colors shadow-lg text-xl">Kế tiếp</button>
+    </div>
+
+    <!-- Trang 2: Nhập thông tin -->
+    <div id="page-info" class="w-full min-h-[100dvh] flex flex-col items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
+            <h2 class="text-3xl font-bold mb-6 text-yellow-300 text-center">Thông Tin Người Chơi</h2>
+            <div class="space-y-6 text-left">
+                <div>
+                    <label for="name" class="block mb-2 text-sm font-medium text-gray-300">Họ và tên</label>
+                    <input type="text" id="name" class="bg-gray-700 border border-gray-600 text-white text-md rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-3" placeholder="Nguyễn Văn A" required>
+                </div>
+                <div class="relative">
+                    <label for="department" class="block mb-2 text-sm font-medium text-gray-300">Bộ phận</label>
+                    <input type="text" id="department" class="bg-gray-700 border border-gray-600 text-white text-md rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-3 transition-colors" placeholder="Nhập để tìm kiếm..." required autocomplete="off">
+                    <div id="autocomplete-list" class="absolute z-10 w-full bg-gray-600 rounded-b-lg max-h-48 overflow-y-auto hidden border border-gray-500">
+                        <!-- Gợi ý sẽ được điền vào đây bằng JS -->
+                    </div>
+                </div>
+            </div>
+            <button id="btn-to-instructions" class="mt-8 w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition-colors shadow-lg text-xl disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50" disabled>Tiếp tục</button>
+        </div>
+    </div>
+
+    <!-- Trang 3: Hướng dẫn -->
+    <div id="page-instructions" class="w-full min-h-[100dvh] flex flex-col items-center justify-center p-4 hidden">
+        <div class="w-full max-w-2xl bg-gray-800 p-8 rounded-xl shadow-2xl text-center">
+            <h2 class="text-3xl font-bold mb-4 text-yellow-300 text-left">Hướng dẫn trò chơi</h2>
+            <p class="text-gray-300 mb-6 leading-relaxed text-left">
+                Hãy thắp sáng các ngọn hải đăng giá trị cốt lõi bằng cách dùng các phím mũi tên để di chuyển nhân vật chạm vào các ngọn hải đăng. Mỗi khi thắp sáng một ngọn hải đăng, bạn hãy dừng lại và đọc giá trị cốt lõi vừa hiện ra một lần để ghi nhớ thứ tự. Đây sẽ là bí quyết giúp bạn chiến thắng trò chơi sau khi tất cả các ngọn hải đăng đều được sáng lên.
+            </p>
+            <div class="my-6">
+                <img src="https://i.postimg.cc/rwGJmkFz/Trang-2.png" alt="Hướng dẫn chơi" class="w-full max-w-md mx-auto rounded-lg">
+            </div>
+            <button id="btn-start-game" class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition-colors shadow-lg text-xl">Bắt đầu</button>
+        </div>
+    </div>
+    
+    <!-- Trang 4: Trò chơi -->
+    <div id="page-game" class="w-full min-h-[100dvh] flex flex-col items-center justify-center p-4 hidden">
+         <div class="w-full max-w-5xl mx-auto flex flex-col lg:flex-row items-center lg:items-start gap-8">
+            <!-- Cột thông tin trò chơi -->
+            <div class="w-full lg:w-1/3 text-center lg:text-left">
+                <h1 class="text-4xl font-bold mb-4 text-yellow-300">Thắp sáng Giá Trị Cốt Lõi</h1>
+                <p class="text-gray-400 mb-2">Người chơi: <span id="display-name" class="font-bold text-white"></span></p>
+                <p class="text-gray-400 mb-6">Bộ phận: <span id="display-department" class="font-bold text-white"></span></p>
+                <div id="discovered-lighthouses" class="bg-gray-800 p-4 rounded-lg shadow-lg min-h-[280px]">
+                    <h2 class="text-2xl font-semibold mb-3 border-b-2 border-gray-600 pb-2">Giá trị đã thắp sáng</h2>
+                    <ul id="discovered-list" class="space-y-2 text-lg">
+                        <!-- Tên các ngọn hải đăng đã thắp sáng sẽ xuất hiện ở đây -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Cột trò chơi -->
+            <div class="w-full lg:w-2/3 flex flex-col items-center">
+                <div id="game-container" class="relative">
+                    <canvas id="gameCanvas"></canvas>
+                </div>
+                 <!-- Bàn phím điều khiển ảo -->
+                <div id="virtual-controls" class="mt-6 grid grid-cols-3 gap-2 w-48 lg:hidden">
+                    <div></div>
+                    <button id="up" class="control-button bg-gray-700 text-white p-4 rounded-lg shadow-md">▲</button>
+                    <div></div>
+                    <button id="left" class="control-button bg-gray-700 text-white p-4 rounded-lg shadow-md">◄</button>
+                    <button id="down" class="control-button bg-gray-700 text-white p-4 rounded-lg shadow-md">▼</button>
+                    <button id="right" class="control-button bg-gray-700 text-white p-4 rounded-lg shadow-md">►</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trang 5: Kiểm tra thứ tự -->
+    <div id="page-sequence" class="w-full min-h-[100dvh] flex flex-col items-center justify-center p-4 hidden">
+        <div class="w-full max-w-2xl mx-auto text-center">
+            <div class="bg-gray-800 p-8 rounded-lg shadow-2xl">
+                <h2 id="sequence-title" class="text-3xl font-bold text-yellow-300 mb-6">Thứ tự giá trị đã thắp sáng?</h2>
+                <div id="sequence-selection-area">
+                    <ul id="sequence-list" class="space-y-3 text-lg mb-6">
+                        <!-- Các giá trị sẽ được hiển thị ở đây để người chơi chọn -->
+                    </ul>
+                    <button id="check-sequence-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors w-full text-xl disabled:bg-gray-600 disabled:cursor-not-allowed" disabled>Kiểm tra</button>
+                </div>
+                <div id="result-area" class="hidden">
+                     <h2 id="result-title" class="text-4xl font-bold text-red-500 mb-4">Sai rồi!</h2>
+                     <p id="correct-sequence-text" class="text-lg mb-6">Thứ tự đúng là: ...</p>
+                     <button id="restart-button-2" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition-colors text-xl">Chơi lại</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal chiến thắng -->
+    <div id="win-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 pointer-events-none transform scale-95">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-400">
+            <h2 class="text-4xl font-bold text-yellow-300 mb-4">CHIẾN THẮNG!</h2>
+            <p class="text-lg mb-6">Bạn đã ghi nhớ và sắp xếp đúng thứ tự các giá trị.</p>
+            <p class="text-lg mb-2">Thời gian hoàn thành: <span id="completion-time" class="font-bold text-yellow-300"></span></p>
+            <p id="submission-status" class="text-gray-400 h-6 mb-4"></p>
+            <button id="restart-button-1" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-6 rounded-lg transition-colors">Chơi lại</button>
+        </div>
+    </div>
+
+
+    <script>
+        // *** DÁN URL WEB APP CỦA BẠN VÀO ĐÂY ***
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzRZOfEIg5jRXgl7QkKBtXrHUqDnGtaeudnV-Qaszimvd9pF2LMXQROPZ90k4eKLb1whA/exec';
+
+        // DOM Elements
+        const pageWelcome = document.getElementById('page-welcome');
+        const pageInfo = document.getElementById('page-info');
+        const pageInstructions = document.getElementById('page-instructions');
+        const pageGame = document.getElementById('page-game');
+        const pageSequence = document.getElementById('page-sequence');
+
+        const btnToInfo = document.getElementById('btn-to-info');
+        const btnToInstructions = document.getElementById('btn-to-instructions');
+        const btnStartGame = document.getElementById('btn-start-game');
+
+        const nameInput = document.getElementById('name');
+        const departmentInput = document.getElementById('department');
+        const displayName = document.getElementById('display-name');
+        const displayDepartment = document.getElementById('display-department');
+        
+        const sequenceList = document.getElementById('sequence-list');
+        const checkSequenceButton = document.getElementById('check-sequence-button');
+        const resultArea = document.getElementById('result-area');
+        const correctSequenceText = document.getElementById('correct-sequence-text');
+        const sequenceSelectionArea = document.getElementById('sequence-selection-area');
+        const winModal = document.getElementById('win-modal');
+        const completionTimeEl = document.getElementById('completion-time');
+        const submissionStatusEl = document.getElementById('submission-status');
+        const autocompleteList = document.getElementById('autocomplete-list');
+
+
+        // --- LOGIC CHUYỂN TRANG & XÁC THỰC ---
+        function restartFullGame() {
+            pageInfo.classList.add('hidden');
+            pageInstructions.classList.add('hidden');
+            pageGame.classList.add('hidden');
+            pageSequence.classList.add('hidden');
+            winModal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+            pageWelcome.classList.remove('hidden');
+            nameInput.value = '';
+            departmentInput.value = '';
+            validateInfoForm();
+        }
+
+        btnToInfo.addEventListener('click', () => {
+            pageWelcome.classList.add('hidden');
+            pageInfo.classList.remove('hidden');
+        });
+
+        btnToInstructions.addEventListener('click', () => {
+            if (nameInput.value.trim() !== '' && departmentInput.value.trim() !== '') {
+                displayName.textContent = nameInput.value.trim();
+                displayDepartment.textContent = departmentInput.value.trim();
+                pageInfo.classList.add('hidden');
+                pageInstructions.classList.remove('hidden');
+            }
+        });
+
+        btnStartGame.addEventListener('click', () => {
+            pageInstructions.classList.add('hidden');
+            pageGame.classList.remove('hidden');
+            setTimeout(initGame, 10); 
+        });
+
+        document.getElementById('restart-button-1').addEventListener('click', restartFullGame);
+        document.getElementById('restart-button-2').addEventListener('click', restartFullGame);
+
+        // --- LOGIC AUTOCOMPLETE VÀ XÁC THỰC CHO BỘ PHẬN ---
+        const departmentList = [
+            "Ban giám đốc", "Phòng kỹ thuật", "Phòng QAQC", "Bộ phận kho", "Phòng kế hoạch sản xuất",
+            "Phòng vật tư", "Phòng xuất nhập khẩu", "Phòng kế toán tài chính", "Phòng hành chính nhân sự",
+            "Phòng bán hàng nội", "Phòng bán hàng xuất khẩu", "Phòng phát triển hệ thống", "Phòng HSE",
+            "Bộ phận bảo vệ", "Bộ phận điện", "Bộ phận cơ khí", "Bộ phận lò nấu", "Bộ phận ép phế",
+            "Bộ phận phay - cán - kéo", "Bộ phận kéo thành phẩm", "Bộ phận kéo ống thẳng", "Bộ phận luồn xốp",
+            "Bộ phận tang gỗ", "Bộ phận PC - LWC", "Bộ phận lò ủ", "Bộ phận đóng gói", "Bộ phận lái xe",
+            "Bộ phận tạp vụ", "Bộ phận bếp"
+        ];
+        
+        function validateInfoForm() {
+            const isNameValid = nameInput.value.trim() !== '';
+            // Kiểm tra xem giá trị bộ phận có nằm trong danh sách chuẩn hóa không
+            const isDepartmentValid = departmentList.includes(departmentInput.value.trim());
+
+            if (isNameValid && isDepartmentValid) {
+                btnToInstructions.disabled = false;
+            } else {
+                btnToInstructions.disabled = true;
+            }
+        }
+
+        nameInput.addEventListener('input', validateInfoForm);
+        departmentInput.addEventListener('input', () => {
+            validateInfoForm(); // Kiểm tra lại nút mỗi khi nhập
+            
+            // Xóa trạng thái lỗi khi người dùng bắt đầu gõ
+            departmentInput.classList.remove('border-red-500', 'focus:ring-red-500');
+            departmentInput.classList.add('border-gray-600', 'focus:ring-yellow-500');
+
+            const inputValue = departmentInput.value.toLowerCase();
+            autocompleteList.innerHTML = '';
+            if (!inputValue) {
+                autocompleteList.classList.add('hidden');
+                return;
+            }
+
+            const suggestions = departmentList.filter(dept => dept.toLowerCase().includes(inputValue));
+
+            if (suggestions.length > 0) {
+                suggestions.forEach(dept => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 hover:bg-gray-500 cursor-pointer';
+                    item.textContent = dept;
+                    item.addEventListener('click', () => {
+                        departmentInput.value = dept;
+                        autocompleteList.innerHTML = '';
+                        autocompleteList.classList.add('hidden');
+                        validateInfoForm(); // Kích hoạt kiểm tra sau khi chọn
+                    });
+                    autocompleteList.appendChild(item);
+                });
+                autocompleteList.classList.remove('hidden');
+            } else {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+        // Thêm viền đỏ nếu nhập sai và rời khỏi ô input
+        departmentInput.addEventListener('blur', () => {
+            const currentValue = departmentInput.value.trim();
+            if (currentValue && !departmentList.includes(currentValue)) {
+                departmentInput.classList.remove('border-gray-600', 'focus:ring-yellow-500');
+                departmentInput.classList.add('border-red-500', 'focus:ring-red-500');
+            } else {
+                departmentInput.classList.remove('border-red-500', 'focus:ring-red-500');
+                departmentInput.classList.add('border-gray-600', 'focus:ring-yellow-500');
+            }
+        });
+
+
+        // Ẩn danh sách gợi ý khi nhấn ra ngoài
+        document.addEventListener('click', (e) => {
+            if (e.target !== departmentInput) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+
+        // --- GAME LOGIC ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('game-container');
+
+        const TILE_SIZE = 20; 
+        const PLAYER_COLOR = '#3b82f6'; 
+        const HELMET_COLOR = '#f59e0b'; 
+        const WALL_COLOR = '#4a5568'; 
+        const PATH_COLOR = '#1a202c'; 
+        const LIGHTHOUSE_NAMES = [
+            "Chính trực", "Đội hình hiệu quả", "Cam kết & Trách nhiệm",
+            "Tận tâm với khách hàng", "Bản lĩnh vươn mình"
+        ];
+        
+        const maze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,3,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,1,0,0,0,4,1],
+            [1,1,0,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1,0,1,1],
+            [1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1],
+            [1,0,1,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1],
+            [1,1,1,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,0,1],
+            [1,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,1,0,0,1,0,1],
+            [1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,0,1],
+            [1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,1,0,1],
+            [1,1,1,1,0,1,0,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,1],
+            [1,0,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1],
+            [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,1,1,1,0,1],
+            [1,2,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,0,1,0,1],
+            [1,1,1,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,1,0,1],
+            [1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,1],
+            [1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1],
+            [1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,7,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1],
+            [1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,0,1],
+            [1,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,1],
+            [1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,1,1,1],
+            [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,1],
+            [1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,0,0,0,1,0,1,1],
+            [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
+            [1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
+            [1,5,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,6,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+        maze[11][31] = 0;
+        maze[22][1]  = 0;
+
+        let player, lighthouses, litCount, maxCols, litOrder, playerSequence, startTime;
+
+        function initGame() {
+            startTime = new Date(); // Bắt đầu tính giờ
+            player = { x: 1, y: 1 }; 
+            lighthouses = [];
+            litCount = 0;
+            litOrder = [];
+            playerSequence = [];
+
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[y].length; x++) {
+                    if (maze[y][x] === 2) player = { x, y };
+                    else if (maze[y][x] >= 3 && maze[y][x] <= 7) lighthouses.push({ x, y, id: maze[y][x] - 3, lit: false });
+                }
+            }
+            
+            document.getElementById('discovered-list').innerHTML = '';
+            resultArea.classList.add('hidden');
+            sequenceSelectionArea.style.display = 'block';
+            checkSequenceButton.disabled = true;
+
+            maxCols = Math.max(...maze.map(r => r.length));
+            resizeCanvas();
+        }
+
+        function resizeCanvas() {
+            if (!maxCols) return;
+            const containerWidth = gameContainer.clientWidth;
+            const mazeWidth = maxCols * TILE_SIZE;
+            const mazeHeight = maze.length * TILE_SIZE;
+            canvas.width = mazeWidth;
+            canvas.height = mazeHeight;
+            const scale = Math.min(containerWidth / mazeWidth, 1);
+            canvas.style.width = `${mazeWidth * scale}px`;
+            canvas.style.height = `${mazeHeight * scale}px`;
+            draw();
+        }
+
+        function draw() {
+            if (!player) return; // Thêm kiểm tra để tránh lỗi vẽ khi chưa init
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawMaze();
+            drawLighthouses();
+            drawPlayer();
+        }
+
+        function drawMaze() {
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maxCols; x++) {
+                     const cell = (maze[y] && maze[y][x] !== undefined) ? maze[y][x] : 1;
+                    ctx.fillStyle = cell === 1 ? WALL_COLOR : PATH_COLOR;
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = PLAYER_COLOR;
+            ctx.fillRect(player.x * TILE_SIZE + 2, player.y * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+            ctx.fillStyle = HELMET_COLOR;
+            ctx.fillRect(player.x * TILE_SIZE + 4, player.y * TILE_SIZE, TILE_SIZE - 8, TILE_SIZE/4);
+        }
+
+        function drawLighthouses() {
+            if (!lighthouses) return;
+            lighthouses.forEach(lh => {
+                const x = lh.x * TILE_SIZE;
+                const y = lh.y * TILE_SIZE;
+                if (lh.lit) {
+                    const gradient = ctx.createRadialGradient(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE * 0.2, x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE * 0.7);
+                    gradient.addColorStop(0, 'rgba(254, 249, 195, 0.8)');
+                    gradient.addColorStop(1, 'rgba(254, 249, 195, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                    ctx.fillStyle = '#f6e05e';
+                } else ctx.fillStyle = '#718096';
+                ctx.beginPath();
+                ctx.moveTo(x + TILE_SIZE * 0.25, y + TILE_SIZE * 0.9);
+                ctx.lineTo(x + TILE_SIZE * 0.4, y + TILE_SIZE * 0.2);
+                ctx.lineTo(x + TILE_SIZE * 0.6, y + TILE_SIZE * 0.2);
+                ctx.lineTo(x + TILE_SIZE * 0.75, y + TILE_SIZE * 0.9);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = lh.lit ? '#f59e0b' : '#a0aec0';
+                ctx.fillRect(x + TILE_SIZE * 0.35, y + TILE_SIZE * 0.1, TILE_SIZE * 0.3, TILE_SIZE * 0.1);
+            });
+        }
+
+        function movePlayer(dx, dy) {
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+            if (!maze[newY] || maze[newY][newX] === undefined || maze[newY][newX] === 1) return;
+            player.x = newX;
+            player.y = newY;
+            checkLighthouse();
+            draw();
+        }
+        
+        function checkLighthouse() {
+            const foundLighthouse = lighthouses.find(lh => lh.x === player.x && lh.y === player.y);
+            if (foundLighthouse && !foundLighthouse.lit) {
+                foundLighthouse.lit = true;
+                litCount++;
+                litOrder.push(foundLighthouse.id);
+                const list = document.getElementById('discovered-list');
+                const newItem = document.createElement('li');
+                newItem.textContent = `${litCount}. ${LIGHTHOUSE_NAMES[foundLighthouse.id]}`;
+                newItem.className = 'lighthouse-item lit opacity-0 transform -translate-y-3 transition-all duration-500';
+                list.appendChild(newItem);
+                setTimeout(() => newItem.classList.remove('opacity-0', '-translate-y-3'), 10);
+                if (litCount === lighthouses.length) setTimeout(startSequenceCheck, 1500);
+            }
+        }
+
+        function startSequenceCheck() {
+            pageGame.classList.add('hidden');
+            pageSequence.classList.remove('hidden');
+            pageSequence.classList.add('flex');
+            const displayOrder = [
+                { name: "Chính trực", id: 0 }, { name: "Cam kết & Trách nhiệm", id: 2 },
+                { name: "Đội hình hiệu quả", id: 1 }, { name: "Tận tâm với khách hàng", id: 3 },
+                { name: "Bản lĩnh vươn mình", id: 4 }
+            ];
+            sequenceList.innerHTML = '';
+            displayOrder.forEach(value => {
+                const li = document.createElement('li');
+                li.className = 'sequence-item bg-gray-700 p-3 rounded-lg flex justify-between items-center';
+                li.dataset.id = value.id;
+                li.innerHTML = `<span>${value.name}</span><span class="sequence-number font-bold text-2xl text-yellow-300 w-8 h-8 flex items-center justify-center"></span>`;
+                sequenceList.appendChild(li);
+            });
+        }
+        
+        sequenceList.addEventListener('click', (e) => {
+            const li = e.target.closest('li.sequence-item');
+            if (!li || li.classList.contains('selected')) return;
+            li.classList.add('selected');
+            const selectedId = parseInt(li.dataset.id);
+            playerSequence.push(selectedId);
+            li.querySelector('.sequence-number').textContent = playerSequence.length;
+            if (playerSequence.length === lighthouses.length) checkSequenceButton.disabled = false;
+        });
+
+        checkSequenceButton.addEventListener('click', () => {
+            const isCorrect = JSON.stringify(playerSequence) === JSON.stringify(litOrder);
+            if (isCorrect) {
+                const endTime = new Date();
+                const timeDiff = endTime - startTime;
+                const secondsTotal = Math.round(timeDiff / 1000);
+                const minutes = Math.floor(secondsTotal / 60);
+                const seconds = secondsTotal % 60;
+                const completionTime = `${minutes} phút ${seconds} giây`;
+                
+                completionTimeEl.textContent = completionTime;
+                pageSequence.classList.add('hidden');
+                winModal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                submitResult(completionTime);
+            } else {
+                sequenceSelectionArea.style.display = 'none';
+                const correctString = litOrder.map(id => LIGHTHOUSE_NAMES[id]).join(' → ');
+                correctSequenceText.innerHTML = `Thứ tự đúng là: <br><span class="text-yellow-300">${correctString}</span>`;
+                resultArea.classList.remove('hidden');
+            }
+        });
+
+        function submitResult(completionTime) {
+            if (!WEB_APP_URL) {
+                submissionStatusEl.textContent = "Chưa cấu hình URL để gửi điểm.";
+                submissionStatusEl.classList.add('text-yellow-500');
+                return;
+            }
+            submissionStatusEl.textContent = "Đang gửi kết quả...";
+            submissionStatusEl.classList.remove('text-green-500', 'text-red-500');
+            
+            const formData = new FormData();
+            formData.append('Name', nameInput.value.trim());
+            formData.append('Department', departmentInput.value.trim());
+            formData.append('CompletionTime', completionTime);
+
+            fetch(WEB_APP_URL, { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result === 'success') {
+                        submissionStatusEl.textContent = "Đã gửi kết quả thành công!";
+                        submissionStatusEl.classList.add('text-green-500');
+                    } else {
+                        throw new Error(data.error);
+                    }
+                })
+                .catch(error => {
+                    submissionStatusEl.textContent = `Lỗi: ${error.message}`;
+                    submissionStatusEl.classList.add('text-red-500');
+                    console.error('Error submitting score:', error);
+                });
+        }
+
+        window.addEventListener('keydown', e => {
+            if (!pageGame.classList.contains('hidden')) {
+                switch (e.key) {
+                    case 'ArrowUp': movePlayer(0, -1); break;
+                    case 'ArrowDown': movePlayer(0, 1); break;
+                    case 'ArrowLeft': movePlayer(-1, 0); break;
+                    case 'ArrowRight': movePlayer(1, 0); break;
+                }
+            }
+        });
+
+        document.getElementById('up').addEventListener('click', () => movePlayer(0, -1));
+        document.getElementById('down').addEventListener('click', () => movePlayer(0, 1));
+        document.getElementById('left').addEventListener('click', () => movePlayer(-1, 0));
+        document.getElementById('right').addEventListener('click', () => movePlayer(1, 0));
+        
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
+
